@@ -1,0 +1,49 @@
+syntax = "proto3";
+package agenda;
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+// Para indicar que a compilação deverá gerar múltiplos arquivos .java
+option java_multiple_files = true;
+// Para indicar o nome do pacote das classes Java que serão geradas
+option java_package = "engtelecom.std.memoria";
+// Para indicar o nome da classe Java que será gerada na compilação
+option java_outer_classname = "MemoriaProtos";
+// Definição das estruturas de dados para representar uma Pessoa
+
+message Jogador {
+	int32 id = 1;
+	string nome = 2;
+	int32 pontuacao = 3;
+}
+
+message Carta {
+  int32 id = 1;
+  string valor = 2;
+  bool ativo=3;
+  int32 posicao = 4;
+}
+
+message Jogo{
+	int32 numCartas = 1;
+	int32 numCartasRestantes = 2;
+	repeated Carta cartas = 3;
+	int32 tamanhoLinhas = 4;
+	int32 jogadorAtual = 5;
+	repeated int32 idJogador = 6;
+	repeated Jogador jogadores = 7;
+}
+
+message Jogada {
+	Carta carta1 = 1;
+	Carta carta2 = 2;
+	int32 idJogador = 3;
+}
+
+// Definição da interface do serviço (métodos que poderão ser invocados)
+service Memoria {
+	rpc conectar (Jogador) returns (google.protobuf.BoolValue) {} //jogador se conecta ao servidor
+	rpc iniciar (Jogo) returns (google.protobuf.BoolValue) {} //quando houverem três jogadores conectados o servidor iniciará o jogo
+	rpc jogada (Jogada) returns (Jogo) {} //jogador informa ao servidor a jogada que fez
+	rpc informarJogada (Jogo) returns (google.protobuf.BoolValue) {} //servidor informa a jogada que um jogador fez para os outros servidores
+	rpc encerrarJogo (Jogo) returns (google.protobuf.BoolValue) {} //servidor informa aos jogadores o fim do jogo.
+}
