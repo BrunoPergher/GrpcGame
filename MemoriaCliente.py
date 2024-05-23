@@ -11,12 +11,9 @@ class MemoriaCliente(memoria_pb2_grpc.MemoriaClienteServicer):
          self.id = id
          self.enderecoCliente = enderecoCliente
          
-    def setTeste(self, stub):
+    def setStub(self, stub):
         self.stub = stub
-        
-    def getTeste(self):
-        print(self.teste)
-         
+
     ##funcao chamada pelo servidor que inicia o jogo, passando todas as informacoes do jogo
     ## self - stub
     ## jogo - objeto do tipo Jogo

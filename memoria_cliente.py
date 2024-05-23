@@ -28,19 +28,21 @@ if __name__ == "__main__":
     cliente_thread.start()
 
     # Conectar ao servidor
-    with grpc.insecure_channel(enderecoServidor) as channel:
-        stub = memoria_pb2_grpc.MemoriaServidorStub(channel)
-        jogador = memoria_pb2.Jogador(
-            id=id,
-            nome=nome,
-            pontuacao=0,
-            endereco=endereco
-        )
-        
-        memoriaCliente.setTeste(stub)
-        resposta = stub.conectar(jogador)
-        if resposta:
-            logging.debug(f'Resposta: {resposta.value}')
+    channel =  grpc.insecure_channel(enderecoServidor)
+    stub = memoria_pb2_grpc.MemoriaServidorStub(channel)
+    jogador = memoria_pb2.Jogador(
+        id=id,
+        nome=nome,
+        pontuacao=0,
+        endereco=endereco
+    )
+    
+    memoriaCliente.setStub(stub)
+    resposta = stub.conectar(jogador)
+    if resposta:
+        logging.debug(f'Resposta: {resposta.value}')
 
     # Esperar o cliente terminar
     cliente_thread.join()
+
+    channel.close()
