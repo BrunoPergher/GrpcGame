@@ -21,6 +21,7 @@ message Carta {
 	int32 id = 1;
 	string valor = 2;
 	bool ativo=3;
+	bool selecionada = 4;
 }
 
 message Jogo{
@@ -33,15 +34,15 @@ message Jogo{
 }
 
 message Jogada {
-	Carta carta1 = 1;
-	Carta carta2 = 2;
+	int32 carta1 = 1;
+	int32 carta2 = 2;
 	int32 idJogador = 3;
 }
 
 // Definição da interface do serviço (métodos que poderão ser invocados)
 service MemoriaServidor {
 	rpc conectar (Jogador) returns (google.protobuf.BoolValue) {} //jogador se conecta ao servidor
-	rpc jogada (Jogada) returns (Jogo) {} //jogador informa ao servidor a jogada que fez
+	rpc jogada (Jogada) returns (google.protobuf.BoolValue) {} //jogador informa ao servidor a jogada que fez
 }
 
 service MemoriaCliente {
@@ -49,4 +50,4 @@ service MemoriaCliente {
 	rpc informarJogada (Jogo) returns (google.protobuf.BoolValue) {} //servidor informa a jogada que um jogador fez para os outros servidores
 	rpc encerrarJogo (Jogo) returns (google.protobuf.BoolValue) {} //servidor informa aos jogadores o fim do jogo.
 }
-//
+//	
