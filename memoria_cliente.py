@@ -38,10 +38,9 @@ if __name__ == "__main__":
     )
     
     memoriaCliente.setStub(stub)
-    resposta = stub.conectar(jogador)
-    if resposta:
-        logging.debug(f'Resposta: {resposta.value}')
-
+    response = stub.conectar(jogador)
+    if response:
+        logging.debug(f"Jogador {nome} conectado com sucesso.")
     # Esperar o cliente terminar
     cliente_thread.join()
 

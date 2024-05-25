@@ -13,25 +13,15 @@ class MemoriaCliente(memoria_pb2_grpc.MemoriaClienteServicer):
          
     def setStub(self, stub):
         self.stub = stub
-
-    ##funcao chamada pelo servidor que inicia o jogo, passando todas as informacoes do jogo
-    ## self - stub
-    ## jogo - objeto do tipo Jogo
-    def iniciar(self, jogo, context):
-        logging.debug(f"Jogo iniciado com {jogo.numCartas} cartas.")
-        print(jogo.numCartas)
-        self.imprimirJogo(jogo)
-        return BoolValue(value=True)
-    
+        
     ## imprime os dados do jogo e pergunta as cartas que o jogador quer escolher, se for sua vez
     def imprimirJogo(self, jogo):
         cartas = list(jogo.cartas)
         i = 0
-
         for carta in cartas:
             if i > 0 and i % 5 == 0:
                 print("\n")
-            if carta.ativo:
+            if carta.ativo and carta.selecionada is False:
                 print(" " + carta.valor + " ", end=" ")
             elif carta.selecionada:
                 print(" " + carta.valor + " ", end=" ")
@@ -43,9 +33,6 @@ class MemoriaCliente(memoria_pb2_grpc.MemoriaClienteServicer):
             
         print("\n")
 
-        if jogo.jogadorAtual == self.id:
-            self.perguntarCartas()
-    
     ## pergunta quais as cartas escolhidas pelo jogador
     def perguntarCartas(self):
         print("Escolha duas cartas para virar: ")
@@ -58,5 +45,20 @@ class MemoriaCliente(memoria_pb2_grpc.MemoriaClienteServicer):
             idJogador=self.id
         )
         
-        response = self.stub.jogada(jogada)
-        print(f"Informativo da jogada: {response.value}")
+        return jogada
+    
+    def imprimirPlacar(self, jogo):
+        print("Placar:")
+        for jogador in jogo.jogadores:
+            print(f"{jogador.id} - {jogador.nome}: {jogador.pontuacao}") 
+    
+    # def informarJogada(self, request, context):
+    #     self.imprimirJogo(request.jogo)
+    #     self.imprimirPlacar(request.jogo)
+    #     self.verificarProximoJogador(request.jogo.jogadorAtual)
+        
+    def informarJogador(self, jogo, context):
+        self.imprimirJogo(jogo)
+        self.imprimirPlacar(jogo)
+        return self.perguntarCartas()
+        
