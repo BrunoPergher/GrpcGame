@@ -7,10 +7,10 @@ from concurrent import futures
 from threading import Thread
 from  MemoriaCliente import MemoriaCliente
 
-id = 1
-nome = 'Jogador 1'
-endereco = '172.16.8.43:8080'
-enderecoServidor = '172.16.8.43:50051'
+id = 2
+nome = 'Jogador 2'
+endereco = 'localhost:8081'
+enderecoServidor = 'localhost:50051'
 
 def serve_cliente(memoriaCliente):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

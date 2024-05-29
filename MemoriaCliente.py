@@ -17,6 +17,8 @@ class MemoriaCliente(memoria_pb2_grpc.MemoriaClienteServicer):
     ## imprime os dados do jogo e pergunta as cartas que o jogador quer escolher, se for sua vez
     def imprimirJogo(self, jogo):
         cartas = list(jogo.cartas)
+        
+
         i = 0
         for carta in cartas:
             if i > 0 and i % 5 == 0:
@@ -25,7 +27,7 @@ class MemoriaCliente(memoria_pb2_grpc.MemoriaClienteServicer):
                 print(" " + carta.valor + " ", end=" ")
             elif carta.selecionada:
                 print(" " + carta.valor + " ", end=" ")
-                carta.selecionada = False
+                jogo.cartas[cartas.index(carta)].selecionada = False
             else:
                 print(i, end=" ")
 
@@ -35,7 +37,7 @@ class MemoriaCliente(memoria_pb2_grpc.MemoriaClienteServicer):
 
     ## pergunta quais as cartas escolhidas pelo jogador
     def perguntarCartas(self):
-        print("Escolha duas cartas para virar: ")
+        print("\nEscolha duas cartas para virar: ")
         carta1 = int(input("Primeira carta: "))
         carta2 = int(input("Segunda carta: "))
 
@@ -52,13 +54,23 @@ class MemoriaCliente(memoria_pb2_grpc.MemoriaClienteServicer):
         for jogador in jogo.jogadores:
             print(f"{jogador.id} - {jogador.nome}: {jogador.pontuacao}") 
     
-    # def informarJogada(self, request, context):
-    #     self.imprimirJogo(request.jogo)
-    #     self.imprimirPlacar(request.jogo)
-    #     self.verificarProximoJogador(request.jogo.jogadorAtual)
+    def receberJogada(self, jogo, context):
+        try:
+            print(f"\nJogada do jogador {jogo.idUltimoJogador}:")
+            self.imprimirJogo(jogo)
+            self.imprimirPlacar(jogo)            
+            return BoolValue(value=True)
+        
+        except Exception as e:
+            logging.error(f"Erro ao receber jogada: {e}")
+            return BoolValue(value=False)
         
     def informarJogador(self, jogo, context):
         self.imprimirJogo(jogo)
         self.imprimirPlacar(jogo)
         return self.perguntarCartas()
-        
+    
+    def informarFimJogo(self, jogo, context):
+        print("\nFim de jogo! \n Placar final:")
+        self.imprimirPlacar(jogo)
+        return BoolValue(value=True)     

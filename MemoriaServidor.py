@@ -14,7 +14,6 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
             numCartas=numCartas,
             numCartasRestantes=numCartas*2,
             cartas=[],
-            tamanhoLinhas=10,
             jogadores=[],
             idJogadorAtual=0,
             idUltimoJogador=0
@@ -59,20 +58,31 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
         return BoolValue(value=True)
     
     def iniciarJogo(self):
-        while (len(self.jogo.jogadores) >= 1 and self.jogo.numCartasRestantes > 0):
-            self.informarVezJogador()    
+        while (len(self.jogo.jogadores) > 1 and self.jogo.numCartasRestantes > 0):
+            self.informarVezJogador()
+        self.encerrarJogo()
         
     def informarVezJogador(self): #chamar no cliente
         for jogador, stub in zip(self.jogo.jogadores, self.jogadoresStub):
             if jogador.id == self.jogo.idJogadorAtual:
                 jogada = stub.informarJogador(self.jogo)
-                resultado = self.verificarJogada(jogada)
-                if resultado == 0:
-                    print("Jogada válida")
-                    #informarJogadaCliente()
-                                                
-        #else: encerrarJogo
-        
+                carta1, carta2 = self.verificarJogada(jogada, jogador)
+                
+                if (carta1 is not None) and (carta2 is not None):
+                    self.informarJogadaCliente()
+                    self.jogo.cartas[jogada.carta1].selecionada = False
+                    self.jogo.cartas[jogada.carta2].selecionada = False #desmarca as cartas selecionadas    
+                if self.jogo.numCartasRestantes == 0:
+                    break
+                
+    def informarJogadaCliente(self):
+        for stub, jogador in zip(self.jogadoresStub, self.jogo.jogadores):
+            response = stub.receberJogada(self.jogo)
+            if response.value is False:
+                logging.error(f"Erro ao informar jogada para o jogador {jogador.nome} (ID: {jogador.id})")
+            else:
+                logging.debug(f"Jogada informada para o jogador {jogador.nome} (ID: {jogador.id})")
+
     #cria o jogo com as cartas embaralhadas
     def criarJogo(self):
         i=0
@@ -86,48 +96,51 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
             i+=1
                     
     #o cliente informa a jogada que deseja fazer para o servidor, que informa os clientes o resultado da jogada       
-    def verificarJogada(self, jogada):
+    def verificarJogada(self, jogada, jogador):
+        jogadores = list(self.jogo.jogadores)
         if self.jogo.idJogadorAtual == jogada.idJogador:
+            if (jogada.carta1 >=0) and (jogada.carta1 <= 49) and (jogada.carta2 >=0) and (jogada.carta2 <= 49):
+                carta1 = self.jogo.cartas[jogada.carta1] # obtém as cartas
+                carta2 = self.jogo.cartas[jogada.carta2]
+                
+                if (carta1.valor == carta2.valor) and (carta1.ativo is False) and (carta2.ativo is False):
+                    self.jogo.jogadores[jogadores.index(jogador)].pontuacao += 1
+                        
+                    self.jogo.cartas[jogada.carta1].ativo = True #marca as cartas como ativas
+                    self.jogo.cartas[jogada.carta2].ativo = True
+                    self.jogo.numCartasRestantes -= 2
+                
+                self.jogo.cartas[jogada.carta1].selecionada = True #marca as cartas como selecionadas
+                self.jogo.cartas[jogada.carta2].selecionada = True
+                
+                self.definirProximoJogador(jogador)
+                return carta1, carta2
             
-            carta1 = self.jogo.cartas[jogada.carta1] # obtém as cartas
-            carta2 = self.jogo.cartas[jogada.carta2]
+        return None, None
             
-            if (carta1.valor == carta2.valor) and (carta1.ativo is False) and (carta2.ativo is False):
-                for jogador in self.jogo.jogadores: #aumenta a pontuação do jogador que acertou
-                    jogador.pontuacao += 1
-                    
-                self.jogo.cartas[jogada.carta1].ativo = True #marca as cartas como ativas
-                self.jogo.cartas[jogada.carta2].ativo = True
-                self.jogo.numCartasRestantes -= 2
-            
-            self.jogo.cartas[jogada.carta1].selecionada = True #marca as cartas como selecionadas
-            self.jogo.cartas[jogada.carta2].selecionada = True
-            
-            self.definirProximoJogador()
-            
-            self.jogo.cartas[jogada.carta1].selecionada = False
-            self.jogo.cartas[jogada.carta2].selecionada = False #desmarca as cartas selecionadas
-            
-            return 0
-        
-        return -1
-    
-    def definirProximoJogador(self):
-        if(self.jogo.idJogadorAtual == self.jogo.jogadores[-1].id):
+    def definirProximoJogador(self, jogador):
+        jogadores = list(self.jogo.jogadores)
+        if(jogador.id == self.jogo.jogadores[-1].id):
             self.jogo.idUltimoJogador = self.jogo.idJogadorAtual
             self.jogo.idJogadorAtual = self.jogo.jogadores[0].id
         else:
             self.jogo.idUltimoJogador = self.jogo.idJogadorAtual
-            self.jogo.idJogadorAtual = self.jogo.jogadores[self.jogo.jogadores.index(jogador)+1].id
+            self.jogo.idJogadorAtual = jogadores[jogadores.index(jogador)+1].id
             
     def criarStub(self, endereco):
         channel = grpc.insecure_channel(endereco)
         stub = memoria_pb2_grpc.MemoriaClienteStub(channel)
         return stub, channel
     
+    def encerrarJogo(self):
+        self.statusJogo = 2
+        for stub in self.jogadoresStub:
+            stub.informarFimJogo(self.jogo)
+        self.encerrar()
+    
     def encerrar(self):
         for channel in self.jogadoresChannel:
             self.encerrarChannel(channel)
 
-    def encerrarChannel(channel):
+    def encerrarChannel(self, channel):
         channel.close()

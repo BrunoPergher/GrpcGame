@@ -20,7 +20,6 @@
 		int32 numCartas = 1;
 		int32 numCartasRestantes = 2;
 		repeated Carta cartas = 3;
-		int32 tamanhoLinhas = 4;
 		repeated Jogador jogadores = 7;
 		int32 idUltimoJogador = 8;
 		int32 idJogadorAtual = 9;	
@@ -39,7 +38,7 @@
 
 	service MemoriaCliente {
 		rpc informarJogador (Jogo) returns (Jogada) {} //servidor informa a jogada que um jogador fez para os outros servidores
-		rpc informarJogada (Jogo) returns (google.protobuf.BoolValue) {} //servidor informa a jogada que um jogador fez para os outros servidores
-		rpc encerrarJogo (Jogo) returns (google.protobuf.BoolValue) {} //servidor informa aos jogadores o fim do jogo.
+		rpc receberJogada (Jogo) returns (google.protobuf.BoolValue) {} //servidor informa a jogada que um jogador fez para os outros servidores0
+		rpc informarFimJogo (Jogo) returns (google.protobuf.BoolValue) {} //servidor informa aos jogadores o fim do jogo.
 	}
 	//	
