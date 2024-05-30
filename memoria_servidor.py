@@ -15,7 +15,8 @@ numJogadores = 2
 
 def verificarNumeroJogadores(memoriaServidor):
     while True:
-        if (memoriaServidor.getNumJogadoresAtual() == numJogadores) and memoriaServidor.getStatusJogo() == 1:
+
+        if int(memoriaServidor.getNumJogadoresAtual()) == numJogadores and int(memoriaServidor.getStatusJogo()) == 1:
             memoriaServidor.iniciarJogo()
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
             idJogadorAtual=0,
             idUltimoJogador=0
         )
-        
+        self.numCartasTotal = numCartas
         self.numJogadores = numJogadores
         self.jogadoresChannel = []
         self.jogadoresStub = []
@@ -37,9 +37,6 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
         if jogadorExistente:
             logging.debug(f"Jogador {request.nome} (ID: {request.id}) já está conectado.")
             return BoolValue(value=False)
-        
-        if len(self.jogo.jogadores) == 0:
-            self.criarJogo()
             
       #  self.jogadores.append(request)
         self.jogo.jogadores.append(request)
@@ -58,9 +55,11 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
         return BoolValue(value=True)
     
     def iniciarJogo(self):
+        self.criarJogo()
         while (len(self.jogo.jogadores) > 1 and self.jogo.numCartasRestantes > 0):
             self.informarVezJogador()
         self.encerrarJogo()
+        self.resetarJogo()
         
     def informarVezJogador(self): #chamar no cliente
         for jogador, stub in zip(self.jogo.jogadores, self.jogadoresStub):
@@ -86,7 +85,7 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
     #cria o jogo com as cartas embaralhadas
     def criarJogo(self):
         i=0
-        random.shuffle(self.valoresCartas) #embaralha
+        #random.shuffle(self.valoresCartas) #embaralha
         while i < self.numCartas*2:
             self.jogo.cartas.append(memoria_pb2.Carta( #cria as cartas
                 id=i+1,
@@ -99,7 +98,7 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
     def verificarJogada(self, jogada, jogador):
         jogadores = list(self.jogo.jogadores)
         if self.jogo.idJogadorAtual == jogada.idJogador:
-            if (jogada.carta1 >=0) and (jogada.carta1 <= 49) and (jogada.carta2 >=0) and (jogada.carta2 <= 49):
+            if (jogada.carta1 >=0) and (jogada.carta1 <= 49) and (jogada.carta2 >=0) and (jogada.carta2 <= 49) and (jogada.carta1 != jogada.carta2):
                 carta1 = self.jogo.cartas[jogada.carta1] # obtém as cartas
                 carta2 = self.jogo.cartas[jogada.carta2]
                 
@@ -116,6 +115,7 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
                 self.definirProximoJogador(jogador)
                 return carta1, carta2
             
+        self.definirProximoJogador(jogador)
         return None, None
             
     def definirProximoJogador(self, jogador):
@@ -138,6 +138,20 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
             stub.informarFimJogo(self.jogo)
         self.encerrar()
     
+    def resetarJogo(self):
+        self.jogo.numCartasRestantes = self.numCartasTotal*2
+        self.jogo.idUltimoJogador = 0
+        self.jogo.idJogadorAtual = 0
+        self.jogadoresChannel.clear()
+        self.jogadoresStub.clear()
+        self.statusJogo = 0
+        
+        while len(self.jogo.cartas) > 0:
+            self.jogo.cartas.pop()
+        
+        while len(self.jogo.jogadores) > 0:
+            self.jogo.jogadores.pop()
+        
     def encerrar(self):
         for channel in self.jogadoresChannel:
             self.encerrarChannel(channel)
