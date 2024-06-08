@@ -98,7 +98,7 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
     def verificarJogada(self, jogada, jogador):
         jogadores = list(self.jogo.jogadores)
         if self.jogo.idJogadorAtual == jogada.idJogador:
-            if (jogada.carta1 >=0) and (jogada.carta1 <= 49) and (jogada.carta2 >=0) and (jogada.carta2 <= 49) and (jogada.carta1 != jogada.carta2):
+            if (jogada.carta1 >=0) and (jogada.carta1 <= (self.jogo.numCartas*2)-1) and (jogada.carta2 >=0) and (jogada.carta2 <= 49) and (jogada.carta1 != jogada.carta2):
                 carta1 = self.jogo.cartas[jogada.carta1] # obtém as cartas
                 carta2 = self.jogo.cartas[jogada.carta2]
                 
@@ -107,6 +107,9 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
                         
                     self.jogo.cartas[jogada.carta1].ativo = True #marca as cartas como ativas
                     self.jogo.cartas[jogada.carta2].ativo = True
+                    
+                    self.jogo.cartas[jogada.carta1].valor = self.sublinhar(self.jogo.cartas[jogada.carta1].valor)
+                    self.jogo.cartas[jogada.carta2].valor = self.sublinhar(self.jogo.cartas[jogada.carta2].valor)
                     self.jogo.numCartasRestantes -= 2
                 
                 self.jogo.cartas[jogada.carta1].selecionada = True #marca as cartas como selecionadas
@@ -117,7 +120,10 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
             
         self.definirProximoJogador(jogador)
         return None, None
-            
+           
+    def sublinhar(self,letra):
+        return f'\033[4m{letra}\033[0m'
+ 
     def definirProximoJogador(self, jogador):
         jogadores = list(self.jogo.jogadores)
         if(jogador.id == self.jogo.jogadores[-1].id):
