@@ -7,7 +7,7 @@ from concurrent import futures
 from threading import Thread
 from  MemoriaCliente import MemoriaCliente
 
-id = 2
+id = 4
 nome = 'Jogador 2'
 endereco = 'localhost:8081'
 enderecoServidor = 'localhost:50051'
