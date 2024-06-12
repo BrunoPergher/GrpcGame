@@ -11,7 +11,7 @@ import memoria_pb2_grpc
 
 valoresCartas = ['A', 'B', 'C', 'A', 'B', 'C']   
 numCartas = 3
-numJogadores = 2
+numJogadores = 3
 
 def verificarNumeroJogadores(memoriaServidor):
     while True:

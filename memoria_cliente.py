@@ -8,7 +8,7 @@ from threading import Thread
 from  MemoriaCliente import MemoriaCliente
 
 id = 1
-nome = 'Jogador 1'
+nome = 'Gutinho'
 endereco = 'localhost:8080'
 enderecoServidor = 'localhost:50051'
 

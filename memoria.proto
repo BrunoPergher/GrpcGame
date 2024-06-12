@@ -2,6 +2,8 @@
 	package agenda;
 	import "google/protobuf/wrappers.proto";
 
+	option go_package = "grpcgame/pb";
+
 	message Jogador {
 		int32 id = 1;
 		string nome = 2;

@@ -85,7 +85,7 @@ class MemoriaServidor(memoria_pb2_grpc.MemoriaServidorServicer):
     #cria o jogo com as cartas embaralhadas
     def criarJogo(self):
         i=0
-        #random.shuffle(self.valoresCartas) #embaralha
+        random.shuffle(self.valoresCartas) #embaralha
         while i < self.numCartas*2:
             self.jogo.cartas.append(memoria_pb2.Carta( #cria as cartas
                 id=i+1,
